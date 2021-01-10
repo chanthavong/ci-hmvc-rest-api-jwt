@@ -3,13 +3,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 require_once APPPATH . '/libraries/REST_Controller.php';
 
-/**
-    * URL: http://localhost/CodeIgniter-JWT-Sample/auth/token
-		* Method: GET
-		
-    * code method API response
-    * https://restfulapi.net/http-methods/ 
-*/
+
 
 class Auth extends REST_Controller {
 
@@ -21,7 +15,6 @@ class Auth extends REST_Controller {
 
 	public function index_get()
 	{
-		# create token example
 		$data['status'] = true;
 		$data['message'] = 'success';
 
@@ -33,16 +26,45 @@ class Auth extends REST_Controller {
 
 	public function index_post()
 	{
-		# example token data response
-		$headers = $this->input->request_headers();
-		if (array_key_exists('authorization', $headers) && !empty($headers['authorization'])) {
-			$decodedToken = AUTHORIZATION::validateToken($headers['authorization']);
-			if ($decodedToken != false) {
-				$this->response($decodedToken, REST_Controller::HTTP_OK);
-			}
+		$this->load->model('users');
+		$email = $this->post('email');
+		$pwd = $this->post('password');
+
+
+		if(!$email) {
+			$this->data['message'] = 'email not found';
+			$this->response($this->data,204);
 		}
 
-		$this->response("Unauthorised", REST_Controller::HTTP_UNAUTHORIZED);
+		if(!$pwd) {
+			$this->data['message'] = 'password not found';
+			$this->response($this->data,204);
+		}
+
+		$row = $this->users->get_by(['email'=>$email]);
+
+		if($row) {
+			if($row->block==false) {
+				if(password_verify($pwd, $row->password)) {
+					$data['id'] = $row->id;
+					$data['email'] = $row->email;
+					$data['fullname'] = $row->fullname;
+
+					$this->data['user'] = $data;
+					$this->data['token'] = AUTHORIZATION::generateToken($data);
+					$this->response($this->data);
+				}else{
+					$this->data['message'] = 'password or not found';
+					$this->response($this->data, REST_Controller::HTTP_UNAUTHORIZED);
+				}
+			}else{
+				$this->data['message'] = 'user is blocked';
+				$this->response($this->data, REST_Controller::HTTP_UNAUTHORIZED);
+			}
+		}else{
+			$this->data['message'] = 'password or email not found';
+			$this->response($this->data, REST_Controller::HTTP_UNAUTHORIZED);
+		}
 
 	}
 

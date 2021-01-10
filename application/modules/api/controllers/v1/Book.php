@@ -3,7 +3,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 require_once APPPATH . '/libraries/REST_Controller.php';
 
-class Customer extends REST_Controller {
+class Book extends REST_Controller {
 
 	public function __construct()
 	{
@@ -50,20 +50,35 @@ class Customer extends REST_Controller {
 			$this->response($this->data,400);
 		}
 
-		$this->books->insert($val);
+		$id = $this->books->insert($val);
 		$this->data['message'] = 'insert new row success';
+		$this->data['book'] = $this->books->get($id);
 		$this->response($this->data,201);
 	}
 
 	public function index_put($value='')
 	{
-		# update
-		$val['description'] = trim($this->put('description'));
-		$val['name'] = trim($this->put('name'));
-		$val['tag'] = trim($this->put('tag'));
-		$val['code'] = trim($this->put('code'));
+		
+		$data = $this->put('book');
 
-		if (!$val['name'] || !$val['code']) {
+		$allowed = ['tag','description','code','name'];
+
+		$id = trim($this->put('id'));
+		
+		if(!$id) {
+			$this->data['message'] = 'id not value !';
+			$this->response($this->data,400);
+		}
+
+		$book = array_filter(
+			$data,
+			function ($key) use ($allowed) {
+				return in_array($key, $allowed);
+			},
+			ARRAY_FILTER_USE_KEY
+		);
+
+		if (!$book['name'] || !$book['code']) {
 			$this->data['status'] = false;
 			$this->data['message'] = 'name or code not value !';
 			$this->response($this->data,400);
@@ -71,18 +86,20 @@ class Customer extends REST_Controller {
 
 		$id = trim($this->put('id'));
 
-		$this->books->update($id,$val);
+		$this->books->update($id,$book);
+		$this->data['book'] = $this->books->get($id);
 		$this->data['message'] = 'update data success';
-		$this->response($this->data,201);
+		$this->response($this->data);
 
 	}
 
 	public function index_delete($id=0)
 	{
 		# delete data by id
+		$this->data['book'] = $this->books->get($id);
 		$this->books->delete($id);
 		$this->data['message'] = 'delete success';
-		$this->response($this->data,201);
+		$this->response($this->data);
 	}
 
 }

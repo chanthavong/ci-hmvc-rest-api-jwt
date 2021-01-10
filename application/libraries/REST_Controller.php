@@ -1451,9 +1451,9 @@ abstract class REST_Controller extends CI_Controller {
         else if ($this->input->method() === 'put')
         {
            // If no filetype is provided, then there are probably just arguments
-         $this->_put_args = $this->input->input_stream();
-     }
- }
+           $this->_put_args = $this->input->input_stream();
+       }
+   }
 
     /**
      * Parse the HEAD request arguments
@@ -2222,17 +2222,28 @@ abstract class REST_Controller extends CI_Controller {
         }
     }
 
-    public function api_check($data)
+    public function getToken()
     {
         $headers = $this->input->request_headers();
-        if (array_key_exists('authorization', $headers) && !empty($headers['authorization'])) {
-            $decodedToken = AUTHORIZATION::validateToken($headers['authorization']);
-            if ($decodedToken != false) {
-                $this->response($data, REST_Controller::HTTP_OK);
+        if (array_key_exists('Authorization', $headers) && !empty($headers['Authorization'])) {
+
+            $token = explode(' ', $headers['Authorization']);
+
+            if($token[0]==='Bearer'){
+                $decodedToken = AUTHORIZATION::validateToken($token[1]);
+                if ($decodedToken != false) {
+                    return $decodedToken;
+                }
+                return $decodedToken;
             }
         }
 
         $this->response("Unauthorised", REST_Controller::HTTP_UNAUTHORIZED);
+    }
+
+    public function userData($key='id')
+    {
+        return $this->checkToken()[$key];
     }
 
 }

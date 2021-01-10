@@ -26,3 +26,5 @@ create table users(
 	updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 	primary key(id)
 );
+
+INSERT INTO `bookstore`.`users`(`id`, `fullname`, `phone`, `email`, `password`, `ip`, `token`, `block`, `lastlog`, `created_at`, `updated_at`) VALUES (1, 'MArk AI', 'xxx', 'mark@gmail.com', '$2y$10$X8ZdUjaULR/eD4olCBSQqOz4rU5G/9MGfax3wGY.fEoOPtijQ.MC6', NULL, NULL, 0, NULL, '2021-01-10 12:44:32', '2021-01-10 14:51:10');

@@ -45,9 +45,10 @@ class User extends REST_Controller {
 			$this->data['message'] = 'user ready exit';
 			$this->response($this->data,400);
 		}else{
+			$val['password'] = password_hash($val['password'], PASSWORD_DEFAULT);
 			$this->data['message'] = 'success';
 			$id = $this->users->insert($val);
-			$this->data['user'] = $this->get($id);
+			$this->data['user'] = $this->users->get($id);
 			$this->response($this->data,201);
 		}
 	}
@@ -55,6 +56,38 @@ class User extends REST_Controller {
 	public function index_put()
 	{
 		# update
+		$data = $this->put('user');
+
+		$allowed = ['fullname','email','password','phone'];
+
+		$id = trim($this->put('id'));
+		
+		if(!$id) {
+			$this->data['message'] = 'id not value !';
+			$this->response($this->data,400);
+		}
+
+		$user = array_filter(
+			$data,
+			function ($key) use ($allowed) {
+				return in_array($key, $allowed);
+			},
+			ARRAY_FILTER_USE_KEY
+		);
+		
+		if (array_key_exists('password',$user)) {
+			// encode password
+			if(strlen($user['password']) > 7) {
+				$user['password'] = password_hash($user['password'],PASSWORD_DEFAULT);
+			}
+		}
+
+		$this->data['user'] = $this->users->get($id);
+		$this->response($this->data);
+	}
+
+	public function changeEmail_put()
+	{
 	}
 
 	public function index_delete($id)
